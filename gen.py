@@ -12,7 +12,8 @@ def upper_camel_case(s):
     :rtype: string
 
     """
-    return "".join(x[0] + x[1:].lower() for x in s.split("_"))
+    return "".join(
+        (x[0] + x[1:].lower() if len(x) > 0 else "_") for x in s.split("_"))
 
 
 class Rust:
@@ -65,6 +66,8 @@ for c in tu.cursor.get_children():
             skip_prefix = len(os.path.commonprefix(children))
 
             for x in c.get_children():
-                MODE.enum_member(x.displayname[skip_prefix:], x.enum_value,
-                                 x.brief_comment)
+                name = x.displayname[skip_prefix:]
+                if name[0].isdigit():
+                    name = "_" + name
+                MODE.enum_member(name, x.enum_value, x.brief_comment)
             MODE.end_enum()

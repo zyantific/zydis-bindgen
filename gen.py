@@ -12,16 +12,17 @@ def upper_camel_case(s):
     :rtype: string
 
     """
-    return "".join(
-        (x[0] + x[1:].lower() if len(x) > 0 else "_") for x in s.split("_"))
+    return "".join((x[0] + x[1:].lower() if len(x) > 0 else "_") for x in s.split("_"))
 
 
 class Rust:
     def print_enum_attributes(self):
-        print("""
+        print(
+            """
 #[cfg_attr(feature = "serialization", derive(Deserialize, Serialize)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(C)]""")
+#[repr(C)]"""
+        )
 
     def start_enum(self, name):
         self.print_enum_attributes()
@@ -56,7 +57,8 @@ tu = index.parse(
         f"-I{ZYDIS_PATH}/include/",
         f"-I{ZYDIS_PATH}",
         f"-I{ZYDIS_PATH}/dependencies/zycore/include",
-    ])
+    ],
+)
 
 for c in tu.cursor.get_children():
     if c.kind == CursorKind.ENUM_DECL:

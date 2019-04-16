@@ -13,6 +13,8 @@ def upper_camel_case(s):
 
 
 class Rust:
+    reserved_keywords = ()
+
     def file_header(self):
         pass
 
@@ -37,6 +39,8 @@ class Rust:
 
 
 class Pyx:
+    reserved_keywords = ('IF',)
+
     def file_header(self):
         print(
             '# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n'
@@ -56,7 +60,7 @@ class Pyx:
         if name == "REQUIRED_BITS":
             return
         if brief_comment:
-            print(f"    // {brief_comment}")
+            print(f"    # {brief_comment}")
         print(f"    {name} = {full_name}")
 
     def end_enum(self):
@@ -64,6 +68,8 @@ class Pyx:
 
 
 class Pxd:
+    reserved_keywords = ()
+
     def file_header(self):
         print(
             '# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n\n'
@@ -92,9 +98,8 @@ if __name__ == "__main__":
 
     zydis_path = sys.argv[1]
     mode = MODES[sys.argv[2]]
-    index = Index.create()
 
-    tu = index.parse(
+    tu = Index.create().parse(
         f"{zydis_path}/include/Zydis/Zydis.h",
         args=[
             f"-I./include",
@@ -114,7 +119,7 @@ if __name__ == "__main__":
 
             for x in c.get_children():
                 name = x.displayname[skip_prefix:]
-                if name[0].isdigit():
+                if name[0].isdigit() or name in mode.reserved_keywords:
                     name = "_" + name
                 mode.enum_member(name, x.displayname, x.enum_value, x.brief_comment)
             mode.end_enum()

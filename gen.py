@@ -4,57 +4,70 @@ import sys
 from clang.cindex import CursorKind, Index
 
 
-def upper_camel_case(s):
-    """Turns an UPPER_CASE string into UpperCamelCase."""
-    return "".join(
-        (x[0] + x[1:].lower() if len(x) > 0 else "_")
-        for x in s.split("_")
-    )
-
-
 class Rust:
     reserved_keywords = ()
 
     def file_header(self):
-        pass
+        print("// AUTO-GENERATED USING zydis-bindgen!\n")
 
     def start_enum(self, name, full_name, brief_comment):
-        print(
-            f'/// {brief_comment}\n'
-            f'#[cfg_attr(feature = "serialization", derive(Deserialize, Serialize)]\n'
-            f'#[derive(Clone, Copy, Debug, Eq, PartialEq)]\n'
-            f'#[repr(C)]\n'
-            f'enum {name} {{'
-        )
+        self.closed = False
+
+        if name == "FormatterProperty":
+            print(
+                f"""/// We wrap this in a nicer rust enum `FormatterProperty` already,
+/// use that instead.
+#[cfg_attr(feature = "serialization", derive(Deserialize, Serialize))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(C)]
+pub enum {full_name[:-1]} {{"""
+            )
+            self.enum_name = full_name[:-1]
+        else:
+            print(
+                f"/// {brief_comment}\n"
+                f'#[cfg_attr(feature = "serialization", derive(Deserialize, Serialize))]\n'
+                f"#[derive(Clone, Copy, Debug, Eq, PartialEq)]\n"
+                f"#[repr(C)]\n"
+                f"pub enum {name} {{"
+            )
+            self.enum_name = name
 
     def enum_member(self, name, full_name, val, brief_comment):
-        name = upper_camel_case(name)
+        if name == "REQUIRED_BITS":
+            return
+        elif name == "MAX_VALUE":
+            # Work around that we can't use negative values in unsigned constants.
+            if self.enum_name == "Padding":
+                return
+            self.closed = True
+            print(f"}}\n\npub const {full_name[6:]}: usize = {val};\n")
+            return
+
         if brief_comment is not None:
             print(f"    /// {brief_comment}\n    {name} = {val},")
         else:
             print(f"    {name} = {val},")
 
     def end_enum(self):
-        print("}\n")
+        if not self.closed:
+            print("}\n")
 
 
 class Pyx:
-    reserved_keywords = ('IF',)
+    reserved_keywords = ("IF",)
 
     def file_header(self):
         print(
-            '# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n'
-            '# distutils: language=3\n'
-            '# distutils: include_dirs=ZYDIS_INCLUDES\n\n'
-            'from enum import IntEnum\n'
-            'from .cenums cimport *\n\n'
+            "# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n"
+            "# distutils: language=3\n"
+            "# distutils: include_dirs=ZYDIS_INCLUDES\n\n"
+            "from enum import IntEnum\n"
+            "from .cenums cimport *\n\n"
         )
 
     def start_enum(self, name, full_name, brief_comment):
-        print(
-            f"class {name}(IntEnum):\n"
-            f'    """{brief_comment}"""'
-        )
+        print(f'class {name}(IntEnum):\n    """{brief_comment}"""')
 
     def enum_member(self, name, full_name, val, brief_comment):
         if name == "REQUIRED_BITS":
@@ -72,7 +85,7 @@ class Pxd:
 
     def file_header(self):
         print(
-            '# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n\n'
+            "# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n\n"
             'cdef extern from "Zydis/Zydis.h":'
         )
 

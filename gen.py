@@ -60,7 +60,6 @@ class Pyx:
     def file_header(self):
         print(
             "# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n"
-            "# distutils: language=3\n"
             "# distutils: include_dirs=ZYDIS_INCLUDES\n\n"
             "from enum import IntEnum\n"
             "from .cenums cimport *\n\n"

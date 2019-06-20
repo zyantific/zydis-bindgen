@@ -74,7 +74,7 @@ class Pyx:
             return
         if brief_comment:
             print(f"    # {brief_comment}")
-        print(f"    {name} = {full_name}")
+        print(f"    {name} = {val}")
 
     def end_enum(self):
         print("\n")
@@ -115,12 +115,16 @@ if __name__ == "__main__":
     tu = Index.create().parse(
         f"{zydis_path}/include/Zydis/Zydis.h",
         args=[
-            f"-I./include",
+            "-DZYAN_NO_LIBC=1", 
+            "-I./include",
             f"-I{zydis_path}/include/",
             f"-I{zydis_path}",
             f"-I{zydis_path}/dependencies/zycore/include",
         ],
     )
+
+    for error in tu.diagnostics:
+        print(f"Err: {error!s}", file=sys.stderr)
 
     mode.file_header()
 

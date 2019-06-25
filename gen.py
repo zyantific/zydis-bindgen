@@ -54,7 +54,7 @@ pub enum {full_name[:-1]} {{"""
             print("}\n")
 
 
-class Pyx:
+class Py:
     reserved_keywords = ("IF",)
 
     def file_header(self):
@@ -62,7 +62,6 @@ class Pyx:
             "# THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n"
             "# distutils: include_dirs=ZYDIS_INCLUDES\n\n"
             "from enum import IntEnum\n"
-            "from .cenums cimport *\n\n"
         )
 
     def start_enum(self, name, full_name, brief_comment):
@@ -100,7 +99,7 @@ class Pxd:
         print()
 
 
-MODES = {"rust": Rust(), "pyx": Pyx(), "pxd": Pxd()}
+MODES = {"rust": Rust(), "py": Py(), "pxd": Pxd()}
 
 
 if __name__ == "__main__":
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     tu = Index.create().parse(
         f"{zydis_path}/include/Zydis/Zydis.h",
         args=[
-            "-DZYAN_NO_LIBC=1", 
+            "-DZYAN_NO_LIBC=1",
             "-I./include",
             f"-I{zydis_path}/include/",
             f"-I{zydis_path}",

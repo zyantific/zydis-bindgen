@@ -6,6 +6,7 @@ from clang.cindex import CursorKind, Index
 
 class Rust:
     reserved_keywords = ()
+    bitflags = ["ZydisOperandAction_"]
 
     def file_header(self):
         print("// AUTO-GENERATED USING zydis-bindgen!\n")
@@ -56,6 +57,7 @@ pub enum {full_name[:-1]} {{"""
 
 class Py:
     reserved_keywords = ("IF",)
+    bitflags = []
 
     def file_header(self):
         print(
@@ -80,6 +82,7 @@ class Py:
 
 class Pxd:
     reserved_keywords = ()
+    bitflags = []
 
     def file_header(self):
         print(
@@ -127,7 +130,7 @@ if __name__ == "__main__":
     mode.file_header()
 
     for c in tu.cursor.get_children():
-        if c.kind == CursorKind.ENUM_DECL and c.displayname[:5] == "Zydis":
+        if c.kind == CursorKind.ENUM_DECL and c.displayname[:5] == "Zydis" and c.displayname not in mode.bitflags:
             mode.start_enum(c.displayname[5:-1], c.displayname, c.brief_comment)
             *children, = [x.displayname for x in c.get_children()]
             skip_prefix = len(os.path.commonprefix(children))

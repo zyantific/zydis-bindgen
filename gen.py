@@ -102,7 +102,34 @@ class Pxd:
         print()
 
 
-MODES = {"rust": Rust(), "py": Py(), "pxd": Pxd()}
+class CSharp:
+    reserved_keywords = ()
+    bitflags = []
+
+    def file_header(self):
+        print("// THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n")
+
+    def start_enum(self, name, full_name, brief_comment):
+        print(f'/// <summary>{brief_comment}</summary>')
+        print(f'public enum {name}\n{{')
+
+    def enum_member(self, name, full_name, val, brief_comment):
+        if name == "REQUIRED_BITS":
+            return
+        if brief_comment:
+            print(f"    /// <summary>{brief_comment}</summary>")
+        print(f"    {name} = {val},")
+
+    def end_enum(self):
+        print("}\n")
+
+
+MODES = {
+    "rust": Rust(),
+    "py": Py(),
+    "pxd": Pxd(),
+    "csharp": CSharp(),
+}
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ pub enum {full_name[:-1]} {{"""
             print(
                 f"/// {brief_comment}\n"
                 f'#[cfg_attr(feature = "serialization", derive(Deserialize, Serialize))]\n'
-                f"#[derive(Clone, Copy, Debug, Eq, PartialEq)]\n"
+                f"#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]\n"
                 f"#[repr(C)]\n"
                 f"pub enum {name} {{"
             )

@@ -3,6 +3,18 @@ import sys
 
 from clang.cindex import CursorKind, Index
 
+def underscoreify(s):
+    """Turns a string like "FooBarBaz" into "foo_bar_baz"."""
+    res = ""
+    # Avoid turning CPU into c_p_u
+    last_was_upper = False
+    for i, c in enumerate(s):
+        if i != 0 and c.isupper() and not last_was_upper:
+            res += "_"
+        res += c.lower()
+        last_was_upper = c.isupper()
+    return res
+
 
 class Rust:
     reserved_keywords = ()
@@ -124,11 +136,37 @@ class CSharp:
         print("}\n")
 
 
+class Ocaml:
+    reserved_keywords = ()
+    bitflags = []
+
+    def __init__(self):
+        self.current_name = None
+
+    def file_header(self):
+        print("(* THIS FILE IS AUTO-GENERATED USING zydis-bindgen! *)\n")
+
+    def start_enum(self, name, full_name, brief_comment):
+        self.current_name = name
+        print(f"type {underscoreify(name)} =")
+
+    def enum_member(self, name, full_name, val, brief_comment):
+        if name == "REQUIRED_BITS" or name == "MAX_VALUE":
+            return
+        if name[0] == "_":
+            name = self.current_name + name[1:]
+        print(f"  | {name}")
+
+    def end_enum(self):
+        print()
+
+
 MODES = {
     "rust": Rust(),
     "py": Py(),
     "pxd": Pxd(),
     "csharp": CSharp(),
+    "ocaml": Ocaml(),
 }
 
 

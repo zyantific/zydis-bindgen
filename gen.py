@@ -148,14 +148,20 @@ class Ocaml:
 
     def start_enum(self, name, full_name, brief_comment):
         self.current_name = name
+        self.i = 0
         print(f"type {underscoreify(name)} =")
 
     def enum_member(self, name, full_name, val, brief_comment):
+        if self.i == 0 and name == "NONE":
+            self.i += 1
+            return
+
         if name == "REQUIRED_BITS" or name == "MAX_VALUE":
             return
         if name[0] == "_":
             name = self.current_name + name[1:]
         print(f"  | {name}")
+        self.i += 1
 
     def end_enum(self):
         print()

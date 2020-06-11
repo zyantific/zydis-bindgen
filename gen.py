@@ -138,7 +138,7 @@ class CSharp:
 
 class Ocaml:
     reserved_keywords = ()
-    bitflags = []
+    bitflags = ["ZydisOperandAction_"]
 
     def __init__(self):
         self.current_name = None

@@ -21,7 +21,11 @@ class Rust:
     bitflags = ["ZydisOperandAction_"]
 
     def file_header(self):
-        print("// AUTO-GENERATED USING zydis-bindgen!\n")
+        print("""// AUTO-GENERATED USING zydis-bindgen!
+
+#[cfg(feature = "serialization")]
+use serde::{Deserialize, Serialize};
+""")
 
     def start_enum(self, name, full_name, brief_comment):
         self.closed = False

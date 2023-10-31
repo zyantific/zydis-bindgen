@@ -251,5 +251,5 @@ if __name__ == "__main__":
                 name = x.displayname[skip_prefix:]
                 if name[0].isdigit() or name in mode.reserved_keywords:
                     name = "_" + name
-                mode.enum_member(name, x.displayname, x.enum_value, x.brief_comment, (index == max - 1) )
+                mode.enum_member(name, x.displayname, x.enum_value, x.brief_comment, index == max - 1)
             mode.end_enum()

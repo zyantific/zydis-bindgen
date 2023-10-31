@@ -3,6 +3,13 @@ import sys
 
 from clang.cindex import CursorKind, Index
 
+# This is here needed for windows to be able to find "libclang.dll"
+if sys.platform == "win32":
+    for path in os.environ['PATH'].split(';'):
+        if os.path.exists(path):
+            os.add_dll_directory(path)
+
+
 def underscoreify(s):
     """Turns a string like "FooBarBaz" into "foo_bar_baz"."""
     res = ""
@@ -50,7 +57,7 @@ pub enum {full_name[:-1]} {{"""
             )
             self.enum_name = name
 
-    def enum_member(self, name, full_name, val, brief_comment):
+    def enum_member(self, name, full_name, val, brief_comment, last):
         if name == "REQUIRED_BITS":
             return
         elif name == "MAX_VALUE":
@@ -85,7 +92,7 @@ class Py:
     def start_enum(self, name, full_name, brief_comment):
         print(f'class {name}(IntEnum):\n    """{brief_comment}"""')
 
-    def enum_member(self, name, full_name, val, brief_comment):
+    def enum_member(self, name, full_name, val, brief_comment, last):
         if name == "REQUIRED_BITS":
             return
         if brief_comment:
@@ -109,7 +116,7 @@ class Pxd:
     def start_enum(self, name, full_name, brief_comment):
         print(f"    ctypedef enum {full_name[:-1]}:")
 
-    def enum_member(self, name, full_name, val, brief_comment):
+    def enum_member(self, name, full_name, val, brief_comment, last):
         if name == "REQUIRED_BITS":
             return
         print(f"        {full_name}")
@@ -129,7 +136,7 @@ class CSharp:
         print(f'/// <summary>{brief_comment}</summary>')
         print(f'public enum {name}\n{{')
 
-    def enum_member(self, name, full_name, val, brief_comment):
+    def enum_member(self, name, full_name, val, brief_comment, last):
         if name == "REQUIRED_BITS":
             return
         if brief_comment:
@@ -155,7 +162,7 @@ class Ocaml:
         self.i = 0
         print(f"type {underscoreify(name)} =")
 
-    def enum_member(self, name, full_name, val, brief_comment):
+    def enum_member(self, name, full_name, val, brief_comment, last):
         if self.i == 0 and name == "NONE":
             self.i += 1
             return
@@ -170,6 +177,33 @@ class Ocaml:
     def end_enum(self):
         print()
 
+class Pascal:
+    reserved_keywords = ()
+    bitflags = []
+
+    def file_header(self):
+        print("// THIS FILE IS AUTO-GENERATED USING zydis-bindgen!\n")
+        print("type\n")
+
+    def start_enum(self, name, full_name, brief_comment):
+        print(f'// {brief_comment}')
+        if full_name.endswith('_'): 
+            full_name = full_name[:-1]
+        print(f'T{full_name} = (')
+
+    def enum_member(self, name, full_name, val, brief_comment, last):    
+
+        if brief_comment:
+            print(f"    // {brief_comment}")
+
+        if last:
+            print(f"    {full_name} = {val}")
+        else:
+            print(f"    {full_name} = {val},")
+
+    def end_enum(self):
+        print(");\n")
+
 
 MODES = {
     "rust": Rust(),
@@ -177,8 +211,8 @@ MODES = {
     "pxd": Pxd(),
     "csharp": CSharp(),
     "ocaml": Ocaml(),
+    "pascal": Pascal(),
 }
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -210,9 +244,10 @@ if __name__ == "__main__":
             *children, = [x.displayname for x in c.get_children()]
             skip_prefix = len(os.path.commonprefix(children))
 
-            for x in c.get_children():
+            max = sum(1 for _ in c.get_children())
+            for index, x in  enumerate(list(c.get_children())):
                 name = x.displayname[skip_prefix:]
                 if name[0].isdigit() or name in mode.reserved_keywords:
                     name = "_" + name
-                mode.enum_member(name, x.displayname, x.enum_value, x.brief_comment)
+                mode.enum_member(name, x.displayname, x.enum_value, x.brief_comment, (index == max - 1) )
             mode.end_enum()

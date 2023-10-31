@@ -245,7 +245,9 @@ if __name__ == "__main__":
             skip_prefix = len(os.path.commonprefix(children))
 
             max = sum(1 for _ in c.get_children())
-            for index, x in  enumerate(list(c.get_children())):
+            enum_members = list(c.get_children())
+            max = len(enum_members)
+            for index, x in enumerate(enum_members):
                 name = x.displayname[skip_prefix:]
                 if name[0].isdigit() or name in mode.reserved_keywords:
                     name = "_" + name
